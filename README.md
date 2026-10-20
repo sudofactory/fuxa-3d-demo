@@ -10,25 +10,12 @@ Each episode has its own folder with the scripts and a setup guide. The scripts 
 | [`01_3d_cube`](01_3d_cube/) | A 3D cube in FUXA | Show a three.js scene in a FUXA view with an open/close script pair: placeholder rectangle, shadow, grid floor, drag along X / Y / Z |
 | [`02_cube_modbus`](02_cube_modbus/) | The cube bound to Modbus TCP | Bind the cube to a real output (A-1855 DO0) in both directions: a click switches the output, and the cube's colour follows the output's live state |
 
-Each episode builds on the one before it: episode 2 reuses episode 1's view, rectangle and events, and only swaps the two scripts.
+Setup steps, settings and notes are in each episode's README. How a script binds to FUXA tags (`$getTagId` / `$getTag` / `$setTag`) is explained in [`02_cube_modbus/README.md`](02_cube_modbus/README.md).
 
 ## Requirements
 
 - FUXA (tested with 1.3.2) and a browser for the runtime
-- Internet access on the PC that opens the runtime: three.js r128 is loaded from cdnjs. On an offline network, point `loadScript(...)` in the scripts to a local copy.
-- Episode 2: a Modbus TCP device. The videos use a Yottacontrol A-1855 (below); any Modbus TCP device or simulator with a coil at the same address works.
-
-## How a script binds to FUXA tags
-
-The 3D scripts never talk Modbus themselves. FUXA owns the device connection; a CLIENT script only reads and writes FUXA tags:
-
-| Command | Returns / does |
-|---|---|
-| `$getTagId(name)` | The tag's **id**, looked up once by the tag name in Connections (an id, not the value) |
-| `$getTag(id)` | The tag's **current value**. FUXA adds `await`, so call it inside an `async` function |
-| `$setTag(id, value)` | **Writes** a new value; FUXA sends it to the device |
-
-So binding a 3D object to any tag takes three steps: look the id up by name once, read the value on a timer to update the scene, and write a value when the user interacts. See [`02_cube_modbus/README.md`](02_cube_modbus/README.md) for the full example.
+- Episode 2: a Modbus TCP device; the videos use the Yottacontrol A-1855 below
 
 ## Hardware used in the videos: Yottacontrol A-1855
 
@@ -48,7 +35,7 @@ The A-1855 is an Ethernet remote I/O module with 8 isolated digital inputs and 4
 | Mounting / size | 35 mm DIN rail or flush; 76.4 × 118.2 × 38.5 mm (W × H × D) |
 | Configuration software | Smart Utility / Yotta Utility (free) |
 
-**Network defaults:** IP `192.168.1.1`, mask `255.255.255.0`, Modbus TCP port `502`. **DHCP is on by default** (register 40515), so the module's IP may not be the default: check it with Smart Utility, or set a fixed IP.
+**Network defaults:** IP `192.168.1.1`, mask `255.255.255.0`, Modbus TCP port `502`, DHCP on (register 40515).
 
 ### Modbus address map (A-1855 / A-1851 / A-1860 / A-1869)
 
@@ -94,8 +81,6 @@ FUXA's Modbus tag **Address offset is 1-based** and the register type is chosen 
 | DO0 (00017) | Coil Status | 17 |
 | DO1 (00018) | Coil Status | 18 |
 | AM0 (40306) | Holding Registers | 306 |
-
-Episode 2 uses one tag: `led_DO0`, Coil Status, address 17 (type Bool). Set the device's **Polling** to 500 ms: with the default 3 sec the 3D view lags behind the module.
 
 ## Repository layout
 
