@@ -26,6 +26,14 @@ The script never talks Modbus itself. FUXA owns the Modbus connection; a CLIENT 
 
 So binding a 3D object to any FUXA tag takes the same three steps: look the id up by name once, read the value on a timer to update the 3D view, and write a value when the user interacts.
 
+**Tip: System functions.** In the script editor, the arrow at the top right opens **System functions**, a list of every FUXA script command (`$setTag`, `$getTag`, `$getTagId`, `$setView`, `$openCard`, …). Click `$setTag` or `$getTag` and a **Tag Selection** dialog lists your tags; pick one and FUXA writes the call at the cursor with that tag's id:
+
+```js
+$setTag('t_939f1266-175243f4' /* A-1855 - led_DO0 */, );
+```
+
+That id is generated per project, so a script that contains it only works in the project it was written in. This script looks the id up by name with `$getTagId(LED_TAG)` instead, so the same file works in any project that has a tag named `led_DO0`.
+
 ## Modbus address (A-1855)
 
 | Tag name | Signal | FUXA memory type | Address |
