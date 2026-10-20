@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A-1855 單機說明書</title>
+<style>
+  :root{ --accent:#2aa99e; --tbl-head:#4f81bd; --tbl-label:#dce6f1; --tbl-zebra:#eef3fa; --tbl-line:#9fb6d6; --ink:#1a1a1a; --muted:#555; --highlight:#c00000; }
+  @page{ size:A4 portrait; margin:12mm 12mm 10mm 12mm; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Noto Sans TC','Microsoft JhengHei','PingFang TC',sans-serif; color:var(--ink); background:#e9eaee; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sheet{ width:186mm; min-height:273mm; margin:10mm auto; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.18); padding:0; }
+  .sheet + .sheet{ break-before:page; }
+  @media print{ body{ background:#fff; } .sheet{ width:auto; min-height:auto; margin:0; box-shadow:none; } }
+  .cat{ font-size:17pt; font-weight:700; line-height:1.25; }
+  .subcat{ font-size:11pt; color:var(--muted); margin:1mm 0 2.5mm; }
+  .banner{ background:var(--accent); color:#fff; font-size:19pt; font-weight:800; letter-spacing:.5px; text-align:center; padding:2.4mm 0; border-radius:1px; }
+  .body{ display:flex; gap:6mm; margin-top:3mm; }
+  .overview{ flex:1 1 58%; min-width:0; }
+  .media{ flex:0 0 38%; display:flex; flex-direction:column; align-items:center; }
+  .overview h2{ font-size:12pt; font-weight:700; margin:0 0 1.5mm; }
+  .overview ul{ list-style:none; margin:0; padding:0; }
+  .overview li{ font-size:9.3pt; line-height:1.5; }
+  .overview li::before{ content:"\203B"; margin-right:1mm; }
+  .overview li.hl{ color:var(--highlight); font-weight:700; text-decoration:underline; }
+  .overview li .emph{ font-size:1.3em; font-weight:800; letter-spacing:.2px; }
+  .media img{ display:block; width:100%; max-height:108mm; object-fit:contain; border:1px solid #ccc; }
+  .media .cap{ font-size:8.5pt; color:var(--muted); margin-top:1.5mm; text-align:center; }
+  .media .ph{ width:100%; height:95mm; border:1.5px dashed #b9b9b9; background:#f6f7f9; color:#8a8f98; display:flex; align-items:center; justify-content:center; text-align:center; font-size:9pt; padding:4mm; }
+  table.spec{ width:100%; border-collapse:collapse; margin-top:4mm; font-size:8.8pt; line-height:1.35; }
+  table.spec th, table.spec td{ border:1px solid var(--tbl-line); padding:1.5mm 2mm; vertical-align:middle; }
+  table.spec tr.thead th{ background:var(--tbl-head); color:#fff; font-size:11pt; text-align:left; }
+  table.spec td.lbl{ background:var(--tbl-label); font-weight:700; width:34%; white-space:nowrap; }
+  body.twocol table.spec tbody tr:nth-child(even):not(.grp) td:not(.lbl){ background:var(--tbl-zebra); }
+  table.spec tbody tr.grp td{ background:var(--tbl-head); color:#fff; font-weight:700; font-size:9.5pt; letter-spacing:.3px; }
+  body.twocol table.spec td.lbl{ width:16%; white-space:normal; }
+  body.twocol table.spec td{ font-size:8.2pt; }
+  table.spec td.e{ background:#fff !important; }
+  .footer{ text-align:center; color:var(--muted); font-size:8.5pt; margin-top:4mm; }
+  .footer a{ color:var(--muted); text-decoration:none; }
+  .year{ text-align:right; color:var(--muted); font-size:8pt; margin-top:1.5mm; }
+  .map-title{ font-size:16pt; font-weight:800; margin:0 0 1mm; }
+  .map-title .scope{ font-size:9pt; font-weight:400; color:#333; }
+  table.map{ width:100%; border-collapse:collapse; font-size:8pt; line-height:1.3; margin-top:2.5mm; }
+  table.map th, table.map td{ border:1px solid var(--tbl-line); padding:1mm 1.6mm; vertical-align:middle; }
+  table.map caption{ caption-side:top; background:#dbe5f1; font-weight:700; font-size:9.5pt; padding:1.2mm; text-align:center; border:1px solid var(--tbl-line); border-bottom:none; }
+  table.map thead th{ background:var(--tbl-head); color:#fff; text-align:left; }
+  table.map thead{ display:table-header-group; }
+  table.map tr{ break-inside:avoid; }
+  table.map td.c, table.map th.c{ text-align:center; white-space:nowrap; }
+  table.map tbody tr:nth-child(even) td{ background:var(--tbl-zebra); }
+  .map-gap{ height:4mm; }
+  body.compact table.spec{ font-size:7.4pt; margin-top:2.5mm; }
+  body.compact table.spec th, body.compact table.spec td{ padding:0.6mm 2mm; }
+  body.compact table.spec tr.thead th{ font-size:9.5pt; }
+  body.compact table.spec tbody tr.grp td{ font-size:8pt; }
+  body.compact .media img{ max-height:80mm; }
+  body.compact .overview li{ font-size:8.2pt; line-height:1.3; }
+  body.compact .body{ margin-top:2mm; }
+  body.compact .banner{ padding:1.8mm 0; }
+  body.twocol .media img{ max-height:70mm; }
+  body.twocol .footer{ margin-top:2mm; }
+  body.twocol .year{ margin-top:0.4mm; font-size:7.5pt; }
+  body.twocol .media img{ max-height:66mm; }
+  body.twocol table.spec{ margin-top:1.5mm; }
+  body.tightmap table.map{ line-height:1.25; }
+</style>
+</head>
+<body class="">
+
+<div class="sheet">
+  <div class="cat">遠程模組</div>
+  <div class="subcat">Ethernet 數位模組（8DI / 4DO）</div>
+  <div class="banner">A-1855</div>
+  <div class="body">
+    <div class="overview">
+      <h2>● 概觀</h2>
+      <ul>
+        <li>內建 Ethernet 介面 + USB 介面</li>
+        <li>Ethernet 支持 8 個獨立端口同時通訊</li>
+        <li>可使用手機、平板電腦遠程監控</li>
+        <li>內置馬達驅動器，可直接連接步進馬達</li>
+        <li>輸出過電流保護（OCP）/ 輸出過熱保護（OTP）/ 輸出欠壓鎖定（UVLO）</li>
+        <li>搭配無線 AP 可連接 A-3290 雙向遙控器直接控制輸出，無須任何控制器</li>
+        <li>提供網頁介面可直接監控與控制</li>
+        <li>支持 Modbus TCP/IP, Modbus RTU</li>
+        <li>靈活的用戶自定義 Modbus 地址</li>
+        <li class="hl">免費設定監控軟體「<span class="emph">Smart Utility</span> / Yotta Utility」</li>
+      </ul>
+    </div>
+    <div class="media">
+      <img class="photo" src="img/A-1855.png" alt="A-1855 產品照" onerror="this.style.display=&#39;none&#39;;this.nextElementSibling.style.display=&#39;flex&#39;;"><div class="ph" style="display:none">放入產品照即顯示<br>img/A-1855.png<br>（A-1855 面板圖，PNG）</div>
+      <div class="cap">A-1855　8DI / 4DO（Motor Driver） 數位模組</div>
+    </div>
+  </div>
+  <table class="spec">
+      <tr class="thead"><th>型號</th><th>A-1855</th></tr>
+      <tbody>
+      <tr><td class="lbl">工作電壓</td><td>10~30VDC / 24VAC</td></tr>
+      <tr><td class="lbl">數位輸入（隔離）</td><td>8*Isolation DI；status low：&lt;1VDC；status high：&gt;5~30VDC</td></tr>
+      <tr><td class="lbl">數位輸出（隔離）</td><td>4*（Motor Driver）</td></tr>
+      <tr><td class="lbl">數位輸出連續電流</td><td>8-60VDC（1.75A）</td></tr>
+      <tr><td class="lbl">Ethernet 通訊速率</td><td>10/100Mbps</td></tr>
+      <tr><td class="lbl">數位輸出入隔離</td><td>YES（5000VDC）</td></tr>
+      <tr><td class="lbl">輸入切換速度</td><td>10HZ</td></tr>
+      <tr><td class="lbl">輸出切換速度</td><td>10HZ</td></tr>
+      <tr><td class="lbl">操作溫度</td><td>−20 to +75 °C</td></tr>
+      <tr><td class="lbl">防護等級</td><td>IP20</td></tr>
+      <tr><td class="lbl">安裝方式</td><td>35 mm DIN rail or Flush mounting</td></tr>
+      <tr><td class="lbl">尺寸（W x H x D）</td><td>76.4 × 118.2 × 38.5 mm</td></tr>
+      <tr><td class="lbl">通訊介面</td><td>USB + Ethernet</td></tr>
+      <tr><td class="lbl">通道獨立設定</td><td>YES</td></tr>
+      </tbody>
+  </table>
+  <div class="footer">更多資訊請參考 <a href="https://www.yottacontrol.com">www.yottacontrol.com</a></div>
+</div>
+
+<div class="sheet">
+  <div class="map-title">Address Mapping <span class="scope">( A-1851 / A-1855 / A-1860 / A-1869 )</span></div>
+  <table class="map">
+  <caption>Supported Modbus Code : 01/02/05/15</caption>
+  <thead><tr><th class="c" style="width:15%">Address 0X</th><th>Item</th><th class="c" style="width:7%">NOR</th><th class="c" style="width:7%">INIT*</th><th style="width:30%">NOTE</th></tr></thead><tbody>
+  <tr><td class="c">00001~00016</td><td>0~15 DI Input Signal</td><td class="c">R</td><td class="c">R</td><td></td></tr>
+  <tr><td class="c">00017~00032</td><td>0~15 DO Output Value</td><td class="c">R/W</td><td class="c">R/W</td><td></td></tr>
+  <tr><td class="c">00033~00048</td><td>0~15 Power On Digital Output Value</td><td class="c">R</td><td class="c">R/W</td><td></td></tr>
+  <tr><td class="c">00049~00064</td><td>0~15 Communication Fail Safe Value</td><td class="c">R</td><td class="c">R/W</td><td></td></tr>
+  <tr><td class="c">00129~01152</td><td>0~1023 Auxiliary Memory (M Flag)</td><td class="c">R/W</td><td class="c">R/W</td><td></td></tr>
+  </tbody></table>
+  <div class="map-gap"></div>
+  <table class="map">
+  <caption>Supported Modbus Code : 03/04/06/16</caption>
+  <thead><tr><th class="c" style="width:15%">Address 4X</th><th>Item</th><th class="c" style="width:7%">NOR</th><th class="c" style="width:7%">INIT*</th><th style="width:30%">NOTE</th></tr></thead><tbody>
+  <tr><td class="c">40177</td><td>Communication Fail Safe Time Setting Value</td><td class="c">R</td><td class="c">R/W</td><td>0~65535:Disable~65535msec</td></tr>
+  <tr><td class="c">40178</td><td>All DI Value</td><td class="c">R</td><td class="c">R</td><td></td></tr>
+  <tr><td class="c">40211</td><td>Module Name 1</td><td class="c">R</td><td class="c">R</td><td></td></tr>
+  <tr><td class="c">40212</td><td>Module Name 2</td><td class="c">R</td><td class="c">R</td><td></td></tr>
+  <tr><td class="c">40213</td><td>Version 1</td><td class="c">R</td><td class="c">R</td><td></td></tr>
+  <tr><td class="c">40214</td><td>Version 2</td><td class="c">R</td><td class="c">R</td><td></td></tr>
+  <tr><td class="c">40215~40220</td><td>1~6 Mac Serial Number</td><td class="c">R</td><td class="c">R</td><td></td></tr>
+  <tr><td class="c">40306~40369</td><td>0~63Analog Auxiliary Memory (AM Flag)</td><td class="c">R/W</td><td class="c">R/W</td><td>0~65535</td></tr>
+  <tr><td class="c">40500~40503</td><td>Ethernet IP</td><td class="c">R</td><td class="c">R/W</td><td>IP:x.x.x.x default : 192.168.1.1</td></tr>
+  <tr><td class="c">40504~40507</td><td>Ethernet MASK</td><td class="c">R</td><td class="c">R/W</td><td>MASK: x.x.x.x default:255.255.255.0</td></tr>
+  <tr><td class="c">40508~40511</td><td>Ethernet GATEWAY</td><td class="c">R</td><td class="c">R/W</td><td>GATEWAY: x.x.x.x Default:192.168.1.1</td></tr>
+  <tr><td class="c">40512</td><td>Ethernet Modbus ID</td><td class="c">R</td><td class="c">R/W</td><td>INIT*: 0 ,NOR:1~255</td></tr>
+  <tr><td class="c">40513</td><td>Ethernet LOCAL PORT</td><td class="c">R</td><td class="c">R/W</td><td>1~65535 Default :502</td></tr>
+  <tr><td class="c">40514</td><td>Ethernet REMOTE PORT</td><td class="c">R</td><td class="c">R/W</td><td>1~65535 Default:2000</td></tr>
+  <tr><td class="c">40515</td><td>Ethernet DHCP Enable</td><td class="c">R</td><td class="c">R/W</td><td>0:ENABLE(default) 1:DISABLE</td></tr>
+  <tr><td class="c">40516</td><td>Ethernet PROTOCAL</td><td class="c">R</td><td class="c">R</td><td>0:Modbus TCP/IP(default)</td></tr>
+  <tr><td class="c">40518~40523</td><td>MAC ADDRESS</td><td class="c">R</td><td class="c">R</td><td>EX: 00-05-5D-E8-0F-A3</td></tr>
+  </tbody></table>
+  <div class="map-gap"></div>
+  <div class="footer">更多資訊請參考 <a href="https://www.yottacontrol.com">www.yottacontrol.com</a></div>
+  <div class="year">© 2026 Yottacontrol</div>
+</div>
+</body>
+</html>
