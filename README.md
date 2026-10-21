@@ -37,43 +37,9 @@ The A-1855 is an Ethernet remote I/O module with 8 isolated digital inputs and 4
 
 **Network defaults:** IP `192.168.1.1`, mask `255.255.255.0`, Modbus TCP port `502`, DHCP on (register 40515).
 
-### Modbus address map (A-1855 / A-1851 / A-1860 / A-1869)
+### A-1855 addresses in FUXA
 
-Access: R = read, R/W = read/write. "Normal" is normal operation; "INIT" is the module's INIT mode as listed in the datasheet (the network settings are writable there).
-
-**Coils and discrete inputs (0X) — function codes 01 / 02 / 05 / 15**
-
-| Address | Item | Normal | INIT |
-|---|---|---|---|
-| 00001–00016 | DI 0–15 input signal | R | R |
-| 00017–00032 | DO 0–15 output value | R/W | R/W |
-| 00033–00048 | DO 0–15 power-on output value | R | R/W |
-| 00049–00064 | DO 0–15 communication fail-safe value | R | R/W |
-| 00129–01152 | Auxiliary memory M0–M1023 (M flag) | R/W | R/W |
-
-**Registers (4X) — function codes 03 / 04 / 06 / 16**
-
-| Address | Item | Normal | INIT | Note |
-|---|---|---|---|---|
-| 40177 | Communication fail-safe time | R | R/W | 0 = disabled, 1–65535 ms |
-| 40178 | All DI value | R | R | |
-| 40211–40212 | Module name 1–2 | R | R | |
-| 40213–40214 | Version 1–2 | R | R | |
-| 40215–40220 | MAC serial number 1–6 | R | R | |
-| 40306–40369 | Analog auxiliary memory AM0–AM63 (AM flag) | R/W | R/W | 0–65535 |
-| 40500–40503 | Ethernet IP | R | R/W | default 192.168.1.1 |
-| 40504–40507 | Ethernet mask | R | R/W | default 255.255.255.0 |
-| 40508–40511 | Ethernet gateway | R | R/W | default 192.168.1.1 |
-| 40512 | Ethernet Modbus ID | R | R/W | 1–255 (INIT: 0) |
-| 40513 | Ethernet local port | R | R/W | default 502 |
-| 40514 | Ethernet remote port | R | R/W | default 2000 |
-| 40515 | Ethernet DHCP | R | R/W | 0 = enabled (default), 1 = disabled |
-| 40516 | Ethernet protocol | R | R | 0 = Modbus TCP/IP (default) |
-| 40518–40523 | MAC address | R | R | e.g. 00-05-5D-E8-0F-A3 |
-
-### The same addresses in FUXA
-
-FUXA's Modbus tag **Address offset is 1-based** and the register type is chosen separately, so the A-1855 table maps directly:
+FUXA's Modbus tag **Address offset is 1-based** and the register type is chosen separately, so the addresses in the A-1855 datasheet's Modbus table map directly:
 
 | A-1855 | FUXA tag: Register | Address offset |
 |---|---|---|
