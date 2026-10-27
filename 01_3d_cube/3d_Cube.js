@@ -13,13 +13,32 @@
 const PLACEHOLDER_ID = 'cube_3d'; // Name (or id) of the placeholder rectangle in FUXA
 const SHOW_AXES = true;           // Show the XYZ arrows (when hidden, they can still be dragged at the same spot)
 
-// Helper: load an external script (skipped if THREE is already loaded or the script tag exists)
-const loadScript = (src) => new Promise((resolve, reject) => {
-    if (window.THREE || document.querySelector(`script[src="${src}"]`)) return resolve();
-    const s = document.createElement('script');
-    s.src = src; s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
-});
+// three.js: FUXA's _widgets folder first (works without internet), then the CDN, pinned by its SHA-384 hash (SRI)
+const THREE_SOURCES = [
+    { src: '/_widgets/three.min.js' },
+    { src: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+      integrity: 'sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu' },
+];
+
+// Helper: load a library once, trying each source in turn; isReady() tells whether it is already there.
+// A source that fails is removed again, so the next open retries instead of finding a dead <script> tag
+const loadScript = (sources, isReady) => {
+    if (isReady()) return Promise.resolve();
+    const loads = window.__fuxa3dLoads = window.__fuxa3dLoads || {};
+    const key = sources[0].src;
+    if (!loads[key]) {
+        const tryFrom = (i) => new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = sources[i].src;
+            if (sources[i].integrity) { s.integrity = sources[i].integrity; s.crossOrigin = 'anonymous'; }
+            s.onload = () => { if (isReady()) return resolve(); s.remove(); reject(new Error('not the library: ' + s.src)); };
+            s.onerror = () => { s.remove(); reject(new Error('failed to load ' + s.src)); };
+            document.head.appendChild(s);
+        }).catch((err) => i + 1 < sources.length ? tryFrom(i + 1) : Promise.reject(err));
+        loads[key] = tryFrom(0).finally(() => { delete loads[key]; });
+    }
+    return loads[key];
+};
 
 // ══════════════════════════════════════════════════════════════
 // Find the DOM element of the named rectangle in the FUXA view (same logic as 3d_Diamond.js)
@@ -46,14 +65,15 @@ const findPlaceholderElement = () => {
     return null;
 };
 
-const waitForPlaceholder = (timeoutMs = 8000, intervalMs = 200) =>
+const waitForPlaceholder = (isCancelled, timeoutMs = 8000, intervalMs = 200) =>
     new Promise((resolve) => {
         const start = Date.now();
         const check = () => {
+            if (isCancelled()) { resolve(null); return; }
             const el = findPlaceholderElement();
             if (el) { resolve(el); return; }
             if (Date.now() - start >= timeoutMs) {
-                console.warn(`[Cube3D] 等待 ${timeoutMs}ms 後仍找不到 "${PLACEHOLDER_ID}"，改為預設浮動模式`);
+                console.warn(`[Cube3D] 等待 ${timeoutMs}ms 後仍找不到 "${PLACEHOLDER_ID}"，不建立 3D 畫面`);
                 resolve(null); return;
             }
             setTimeout(check, intervalMs);
@@ -73,17 +93,31 @@ const initCube = async () => {
     const oldContainer = document.getElementById('cube-3d-container');
     if (oldContainer) oldContainer.remove();
 
-    // ==========================================
-    // 2. Find the rectangle on the FUXA canvas to use as the placeholder
-    // ==========================================
-    const placeholder = await waitForPlaceholder();
+    // While starting up, closing the view only has to stop the start-up; cleanup() takes over once the scene exists
+    const cancelStartup = () => { isDestroyed = true; };
+    const stopStartup = () => { if (window.destroyCube3D === cancelStartup) window.destroyCube3D = null; };
+    window.destroyCube3D = cancelStartup;
 
-    let initRect = { left: 100, top: 100, width: 300, height: 300 };
-    if (placeholder && placeholder.getBoundingClientRect) {
-        initRect = placeholder.getBoundingClientRect();
-        placeholder.style.visibility = 'hidden'; // Hide the original rectangle
-        console.log('[Cube3D] 找到佔位框:', initRect);
+    // ==========================================
+    // 2. Find the rectangle on the FUXA canvas to use as the placeholder, and load three.js
+    // ==========================================
+    const placeholder = await waitForPlaceholder(() => isDestroyed);
+    // No rectangle, no 3D: a floating view would cover every other view and never clean itself up
+    if (isDestroyed || !placeholder) return stopStartup();
+
+    // Load three.js before anything is added to the page, so a failed load leaves nothing behind
+    try {
+        await loadScript(THREE_SOURCES, () => !!window.THREE);
+    } catch (err) {
+        console.error('[Cube3D] three.js 載入失敗:', err);
+        return stopStartup();
     }
+    if (isDestroyed || !document.body.contains(placeholder)) return stopStartup(); // The view closed while loading
+    const THREE = window.THREE;
+
+    const initRect = placeholder.getBoundingClientRect();
+    placeholder.style.visibility = 'hidden'; // Hide the original rectangle
+    console.log('[Cube3D] 找到佔位框:', initRect);
 
     // ==========================================
     // 3. Create the outer container (overlaid on the rectangle)
@@ -101,43 +135,36 @@ const initCube = async () => {
         pointerEvents: 'none', // Let clicks pass through to the background
     });
     // Mount inside app-fuxa-view (not body): same stacking context as the FUXA UI
-    const mountNode = (placeholder && placeholder.closest('app-fuxa-view')) || document.body;
+    const mountNode = placeholder.closest('app-fuxa-view') || document.body;
     mountNode.appendChild(container);
 
-    // Keep position in sync when the window or canvas is resized
+    // Keep position in sync when the window or canvas is resized, or the view scrolls
     const updateContainerPosition = () => {
-        if (placeholder) {
-            const rect = placeholder.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;   // Size is 0 while hidden; skip to avoid a NaN aspect
-            Object.assign(container.style, {
-                left: rect.left + 'px',
-                top: rect.top + 'px',
-                width: rect.width + 'px',
-                height: rect.height + 'px'
-            });
-            if (!renderer || !camera) return;          // Skip if the event fires before renderer/camera exist
-            renderer.setSize(rect.width, rect.height);
-            camera.aspect = rect.width / rect.height;
-            camera.updateProjectionMatrix();
-        }
+        const rect = placeholder.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;   // Size is 0 while hidden; skip to avoid a NaN aspect
+        Object.assign(container.style, {
+            left: rect.left + 'px',
+            top: rect.top + 'px',
+            width: rect.width + 'px',
+            height: rect.height + 'px'
+        });
+        if (!renderer || !camera) return;          // Skip if the event fires before renderer/camera exist
+        renderer.setSize(rect.width, rect.height);
+        camera.aspect = rect.width / rect.height;
+        camera.updateProjectionMatrix();
     };
+    window.addEventListener('resize', updateContainerPosition);
+    window.addEventListener('scroll', updateContainerPosition, true); // true: also scrolls inside the FUXA view
     let mo = null;
-    if (placeholder) {
-        window.addEventListener('resize', updateContainerPosition);
-        const svgEl = placeholder.closest('svg');
-        if (svgEl) {
-            mo = new MutationObserver(updateContainerPosition);
-            mo.observe(svgEl, { attributes: true, subtree: false });
-        }
+    const svgEl = placeholder.closest('svg');
+    if (svgEl) {
+        mo = new MutationObserver(updateContainerPosition);
+        mo.observe(svgEl, { attributes: true, subtree: false });
     }
 
     // ==========================================
     // 4. Build the Three.js 3D scene
     // ==========================================
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
-    if (isDestroyed) return;
-    const THREE = window.THREE;
-    if (!THREE) { console.error('[Cube3D] three.js 載入失敗'); return; }
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1e2230);
 
@@ -309,16 +336,21 @@ const initCube = async () => {
     // ==========================================
     // 6. Render loop
     // ==========================================
+    // Liveness check: switching views / entering edit mode removes or hides the placeholder (width 0), so everything is
+    // released even when the view has no close script. Checked every frame, and once a second by a timer as well,
+    // because the browser pauses requestAnimationFrame while the tab is in the background
+    const placeholderGone = () => !document.body.contains(placeholder) || placeholder.getBoundingClientRect().width === 0;
+    const releaseIfGone = () => {
+        if (isDestroyed || !placeholderGone()) return false;
+        console.log('[Cube3D] 偵測到佔位元素消失或隱藏，自動執行銷毀...');
+        cleanup();
+        return true;
+    };
+    const watchdog = setInterval(releaseIfGone, 1000);
+
     let animationId = null;
     const animate = () => {
-        if (isDestroyed) return;
-        // Liveness check (safety net): when switching views / entering edit mode, the placeholder is removed or hidden (width 0), so clean up automatically
-        if (placeholder && (!document.body.contains(placeholder) || placeholder.getBoundingClientRect().width === 0)) {
-            console.log('[Cube3D] 偵測到佔位元素消失或隱藏，自動執行銷毀...');
-            cleanup();
-            return;
-        }
-
+        if (isDestroyed || releaseIfGone()) return;
         animationId = requestAnimationFrame(animate);
         gizmo.position.copy(cube.position); // Arrows follow the cube
         renderer.render(scene, camera);
@@ -333,8 +365,10 @@ const initCube = async () => {
         console.log('[Cube3D] 執行 destroy (關閉畫面清理資源)...');
         isDestroyed = true;
         if (animationId) cancelAnimationFrame(animationId);
+        clearInterval(watchdog);
 
         window.removeEventListener('resize', updateContainerPosition);
+        window.removeEventListener('scroll', updateContainerPosition, true);
         if (mo) mo.disconnect();
         renderer.domElement.removeEventListener('pointerdown', onPointerDown);
         renderer.domElement.removeEventListener('pointermove', onPointerMove);
@@ -348,9 +382,7 @@ const initCube = async () => {
         }
 
         // Restore the FUXA placeholder
-        if (placeholder) {
-            placeholder.style.visibility = '';
-        }
+        placeholder.style.visibility = '';
 
         // Free Three.js WebGL memory
         if (renderer) {

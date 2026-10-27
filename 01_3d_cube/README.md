@@ -46,7 +46,7 @@ Menu labels can differ slightly between FUXA versions.
 ### Step 5: Test
 
 1. Open the FUXA runtime (for example `http://localhost:1881`) and go to the view.
-2. The rectangle should be replaced by the 3D cube after a moment (three.js loads from the CDN on first use).
+2. The rectangle should be replaced by the 3D cube after a moment (three.js loads on first use; see Notes).
 3. Switch to another view and back. Only one cube should appear, with no leftover canvas.
 
 If nothing appears, press **F12** and check the browser console for messages starting with `[Cube3D]`. A warning that `cube_3d` can't be found usually means the rectangle's Name doesn't match.
@@ -68,6 +68,7 @@ At the top of `3d_Cube.js`:
 
 ## Notes
 
-- three.js (r128) is loaded from cdnjs, so the machine running FUXA needs internet access. On an offline network, change the URL in `loadScript(...)` to a local path.
-- The cleanup function is exposed as `window.destroyCube3D`, which the close script calls to release the WebGL context. Even without the close script, the code detects the rectangle disappearing when the view changes and cleans up on its own.
+- three.js (r128) is loaded from `/_widgets/three.min.js` first. Copy [`lib/three.min.js`](../lib/three.min.js) into FUXA's `_widgets` folder and the scene works without internet access. If the file isn't there, the script falls back to cdnjs, pinned by its SHA-384 hash (SRI): a changed file on the CDN is refused instead of run. (The browser console then shows one 404 for the local path; that's expected.)
+- The cleanup function is exposed as `window.destroyCube3D`, which the close script calls to release the WebGL context. Even without the close script, everything is released when the view changes: the code checks every frame, and once a second by a timer (the browser pauses frames in a background tab), whether the rectangle is gone. Closing the view while the script is still starting up stops it too.
+- If the rectangle named `cube_3d` isn't found within 8 seconds, no 3D view is created (the console shows a warning).
 - If the same page runs other 3D scripts, give each one a different `window` cleanup function name so they don't clean up each other.
